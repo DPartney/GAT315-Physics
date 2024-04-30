@@ -34,7 +34,6 @@ function platform_defines()
         disablewarnings {"deprecated-declarations"}
 
     filter {"system:linux"}
-        defines {"_GLFW_X11"}
         defines {"_GNU_SOURCE"}
 -- This is necessary, otherwise compilation will fail since
 -- there is no CLOCK_MONOTOMIC. raylib claims to have a workaround
@@ -76,7 +75,7 @@ function link_raylib()
 
     filter "system:windows"
         defines{"_WIN32"}
-        links {"winmm", "gdi32"}
+        links {"winmm", "kernel32", "gdi32"}
         libdirs {"../bin/%{cfg.buildcfg}"}
 
     filter "system:linux"
