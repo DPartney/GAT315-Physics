@@ -265,6 +265,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\body.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\world.c" />
   </ItemGroup>
@@ -274,6 +275,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="integrator.h" />
     <ClInclude Include="src\body.h" />
     <ClInclude Include="src\mathf.h" />
     <ClInclude Include="src\world.h" />
