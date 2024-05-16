@@ -53,7 +53,7 @@ void DestoryAllSprings()
 
 }
 
-void ApplySpringForce(ncSpring_t* springs) 
+void ApplySpringForce(ncSpring_t* springs)
 {
 	for (ncSpring_t* spring = springs; spring; spring = spring->next)
 	{

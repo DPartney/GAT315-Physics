@@ -129,17 +129,16 @@ int main(void)
 		}
 
 		if (!ncEditorIntersect) {
-			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && IsKeyDown(KEY_LEFT_SHIFT)))
 			{
 				ncBody* body = CreateBody(ConvertScreenToWorld(position), ncEditorData.MassValue, ncEditorData.BodyTypeActive);
 
 				body->damping = ncEditorData.DampingValue; // 2.5f;
 				body->gravityScale = ncEditorData.GravityScaleValue;
-
 				body->color = GREEN;
+				body->restitution = 0.6;
 
 				AddBody(body);
-
 			}
 
 			//connectspring
@@ -156,21 +155,6 @@ int main(void)
 			}
 		}
 
-		/*if (IsKeyPressed(KEY_ONE))
-		{
-			FireworkOne();
-		}
-
-		if (IsKeyPressed(KEY_TWO))
-		{
-			FireworkTwo();
-		}
-
-		if (IsKeyPressed(KEY_THREE))
-		{
-			FireworkThree();
-		}*/
-
 		//applyForce
 		ApplyGravitation(ncBodies, ncEditorData.GravitationValue);
 		ApplySpringForce(ncSprings);
@@ -184,6 +168,8 @@ int main(void)
 		//collision
 		ncContact_t* contacts = NULL;
 		CreateContacts(ncBodies, &contacts);
+		SeparateContacts(contacts);
+		ResolveContacts(contacts);
 
 		//render
 		BeginDrawing();

@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <string.h>
 
-bool Intersects(ncBody* body1, ncBody* body2) 
+bool Intersects(ncBody* body1, ncBody* body2)
 {
 	// if distance < radius
 	float distance = Vector2Distance(body1->position, body2->position);
@@ -17,16 +17,16 @@ bool Intersects(ncBody* body1, ncBody* body2)
 	return (distance <= radius);
 }
 
-void CreateContacts(ncBody* bodies, ncContact_t** contacts) 
+void CreateContacts(ncBody* bodies, ncContact_t** contacts)
 {
-	for (ncBody* body1 = bodies; body1; body1 = body1->next) 
+	for (ncBody* body1 = bodies; body1; body1 = body1->next)
 	{
 		for (ncBody* body2 = body1->next; body2; body2 = body2->next)
 		{
 			if (body1 == body2) continue;
 			if (body1->type != BT_DYNAMIC && body2->type != BT_DYNAMIC) continue;
 
-			if (Intersects(body1, body2)) 
+			if (Intersects(body1, body2))
 			{
 				ncContact_t* contact = GenerateContact(body1, body2);
 				AddContact(contact, contacts);
@@ -35,7 +35,7 @@ void CreateContacts(ncBody* bodies, ncContact_t** contacts)
 	}
 }
 
-ncContact_t* GenerateContact(ncBody* body1, ncBody* body2) 
+ncContact_t* GenerateContact(ncBody* body1, ncBody* body2)
 {
 	ncContact_t* contact = (ncContact_t*)malloc(sizeof(ncContact_t));
 	assert(contact);
@@ -61,12 +61,31 @@ ncContact_t* GenerateContact(ncBody* body1, ncBody* body2)
 	return contact;
 }
 
-void SeparateContacts(ncContact_t* contacts) 
+void SeparateContacts(ncContact_t* contacts)
 {
-
+	for (ncContact_t* contact = contacts; contact; contact = contact->next)
+	{
+		float totalInverseMass = contact->body1->inverseMass + contact->body2->inverseMass;
+		Vector2 seperation = Vector2Scale(contact->normal, contact->depth / totalInverseMass);
+		contact->body1->position = Vector2Add(contact->body1->position, Vector2Scale(seperation, contact->body1->inverseMass));
+		contact->body2->position = Vector2Add(contact->body2->position, Vector2Scale(seperation, -contact->body2->inverseMass));
+	}
 }
 
-void ResolveContacts(ncContact_t* contacts) 
+void ResolveContacts(ncContact_t* contacts)
 {
+	for (ncContact_t* contact = contacts; contact; contact = contact->next)
+	{
+		Vector2 rv = Vector2Subtract(contact->body1->velocity, contact->body2->velocity);
+		float nv = Vector2DotProduct(rv, contact->normal);
 
+		if (nv > 0) continue;
+
+		float totalInverseMass = contact->body1->inverseMass + contact->body2->inverseMass;
+		float impulseMagnitude = -(1 + contact->restitution) * nv / totalInverseMass;
+
+		Vector2 impulse = Vector2Scale(contact->normal, impulseMagnitude);
+		ApplyForce(contact->body1, impulse, FM_IMPULSE);
+		ApplyForce(contact->body2, Vector2Negate(impulse), FM_IMPULSE);
+	}
 }
