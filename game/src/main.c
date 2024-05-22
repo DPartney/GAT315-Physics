@@ -105,6 +105,9 @@ int main(void)
 	InitEditor();
 	SetTargetFPS(60);
 
+	float fixedTimestep = 1.0f / 60;
+	float timeAccumulator = 0.0f;
+
 	//initialize world
 
 	//game loop
@@ -115,6 +118,7 @@ int main(void)
 		//update
 		float dt = GetFrameTime();
 		float fps = (float)GetFPS();
+		timeAccumulator += dt;
 
 		Vector2 position = GetMousePosition();
 		ncScreenZoom += GetMouseWheelMove() * 0.2f;
@@ -155,21 +159,25 @@ int main(void)
 			}
 		}
 
-		//applyForce
-		ApplyGravitation(ncBodies, ncEditorData.GravitationValue);
-		ApplySpringForce(ncSprings);
-
-		//update bodies
-		for (ncBody* body = ncBodies; body; body = body->next)
+		while (timeAccumulator >= fixedTimestep)
 		{
-			Step(body, dt);
-		}
+			timeAccumulator -= fixedTimestep;
+			//applyForce
+			ApplyGravitation(ncBodies, ncEditorData.GravitationValue);
+			ApplySpringForce(ncSprings);
 
-		//collision
-		ncContact_t* contacts = NULL;
-		CreateContacts(ncBodies, &contacts);
-		SeparateContacts(contacts);
-		ResolveContacts(contacts);
+			//update bodies
+			for (ncBody* body = ncBodies; body; body = body->next)
+			{
+				Step(body, dt);
+			}
+
+			//collision
+			ncContact_t* contacts = NULL;
+			CreateContacts(ncBodies, &contacts);
+			SeparateContacts(contacts);
+			ResolveContacts(contacts);
+		}
 
 		//render
 		BeginDrawing();
@@ -189,7 +197,7 @@ int main(void)
 		}
 
 		// draw contacts
-		for (ncContact_t* contact = contacts; contact; contact = contact->next)
+		for (ncContact_t* contact = contact; contact; contact = contact->next)
 		{
 			Vector2 screen = ConvertWorldToScreen(contact->body1->position);
 			DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(contact->body1->mass * 0.5f), RED);
